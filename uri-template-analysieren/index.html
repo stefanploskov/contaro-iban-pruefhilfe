@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>URI-Template lokal analysieren | Contaro e.U.</title>
+  <meta name="description" content="Kostenlose lokale Contaro Arbeitshilfe zum Prüfen von URI-Templates, Ausdrücken, Operatoren, Variablen, Präfixen und Explosionsmarkierungen.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://stefanploskov.github.io/contaro-iban-pruefhilfe/uri-template-analysieren/">
+  <style>
+    :root{color-scheme:light;--ink:#242823;--muted:#656a64;--line:#d9ddd7;--paper:#f4f2ed;--card:#fff;--accent:#315b43;--soft:#e7eee8;--bad:#922e24}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{width:min(880px,calc(100% - 32px));margin:48px auto}.eyebrow{color:var(--accent);font-weight:700;letter-spacing:.08em;text-transform:uppercase}h1{font-size:clamp(2rem,6vw,3.8rem);line-height:1.04;margin:.35em 0}.intro{max-width:72ch;color:var(--muted);font-size:1.08rem}.card{margin-top:28px;padding:24px;border:1px solid var(--line);border-radius:18px;background:var(--card);box-shadow:0 10px 34px rgba(35,45,38,.06)}label{display:block;margin-top:12px;font-weight:700}textarea{width:100%;min-height:180px;margin-top:7px;padding:13px;border:1px solid #bfc5be;border-radius:10px;background:#fff;color:var(--ink);resize:vertical;font:.9rem/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}button{border:0;border-radius:10px;padding:12px 16px;background:var(--accent);color:#fff;font:700 1rem/1 system-ui;cursor:pointer}.secondary{border:1px solid #bec8bf;background:#fff;color:var(--accent)}.status{margin-top:18px;padding:15px;border-radius:12px;background:var(--soft)}.status span{display:block;color:var(--muted);font-size:.8rem}.status strong{display:block;margin-top:4px;font-size:1.08rem;overflow-wrap:anywhere}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.panel{min-width:0;padding:15px;border-radius:12px;background:var(--soft)}.panel h3{margin-top:0}.facts{margin:0;padding:0;list-style:none}.facts li{padding:8px 0;border-bottom:1px solid #d0d9d1;overflow-wrap:anywhere}.facts li:last-child{border-bottom:0}.facts span{display:block;color:var(--muted);font-size:.78rem}.note{color:var(--muted);font-size:.92rem}.message{min-height:24px}.warning{color:var(--bad)}nav,footer{margin-top:26px}footer{padding-top:20px;border-top:1px solid var(--line);color:var(--muted)}a{color:var(--accent);font-weight:700}@media(max-width:700px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Kostenlose Arbeitshilfe · Contaro e.U.</p>
+    <h1>URI-Template lokal analysieren</h1>
+    <p class="intro">Prüfe URI-Template-Ausdrücke, alle verbreiteten Operatoren, Variablenlisten, Prozentkodierung, Präfixe, Explosionsmarkierungen, Dubletten und Klammerfehler ohne Übertragung.</p>
+    <section class="card" aria-labelledby="template-heading">
+      <h2 id="template-heading">Template eingeben</h2>
+      <label for="template-input">URI-Template als Text</label>
+      <textarea id="template-input" spellcheck="false" autocomplete="off">/api/{version}/kunden/{id}{?felder,sprache}</textarea>
+      <div class="actions"><button id="check" type="button">Template prüfen</button><button id="sample" class="secondary" type="button">Beispiel wiederherstellen</button></div>
+      <p id="message" class="note message">Das URI-Template wurde ausschließlich lokal ausgewertet.</p>
+      <div class="status" aria-live="polite"><span>Template-Struktur und Prüfstand</span><strong id="status">3 Ausdrücke · 4 Variablen · 0 Prüfhinweise</strong></div>
+      <div class="grid">
+        <div class="panel"><h3>Aufbau</h3><ul id="structure" class="facts"></ul></div>
+        <div class="panel"><h3>Operatoren</h3><ul id="operators" class="facts"></ul></div>
+        <div class="panel"><h3>Variablenformen</h3><ul id="variables" class="facts"></ul></div>
+        <div class="panel"><h3>Prüfhinweise</h3><ul id="warnings" class="facts"></ul></div>
+      </div>
+    </section>
+    <p class="note">Die Analyse erfolgt ausschließlich lokal im Browser. Es werden keine Inhalte gespeichert, übertragen, erweitert oder aufgerufen. Template-Text, Pfade, Variablennamen und Prozentwerte erscheinen nicht in den Ergebnissen. Die Prüfung orientiert sich an verbreiteten URI-Template-Grundregeln und ersetzt keinen Test mit der Zielbibliothek.</p>
+    <p><a href="https://www.contaro.net/funktionen">Funktionen von Contaro ansehen</a></p>
+    <nav><a href="../">Weitere Arbeitshilfen</a></nav>
+    <footer>Contaro e.U., Ruffenbrunnerstraße 13, 2352 Gumpoldskirchen, Österreich</footer>
+  </main>
+  <script>
+    const sampleTemplate=document.querySelector('#template-input').value;
+    const input=document.querySelector('#template-input');const statusOutput=document.querySelector('#status');const structureOutput=document.querySelector('#structure');const operatorsOutput=document.querySelector('#operators');const variablesOutput=document.querySelector('#variables');const warningsOutput=document.querySelector('#warnings');const message=document.querySelector('#message');
+    const operatorSet=new Set(['+','#','.','/',';','?','&']);
+    function item(label,value){const element=document.createElement('li');const name=document.createElement('span');name.textContent=label;element.append(name,document.createTextNode(String(value)));return element}
+    function unique(values){return[...new Set(values)]}
+    function validName(value){return/^(?:[A-Za-z0-9_]|%[0-9A-Fa-f]{2})+(?:\.(?:[A-Za-z0-9_]|%[0-9A-Fa-f]{2})+)*$/.test(value)}
+    function analyze(source){
+      if(source==='')throw new Error('Bitte ein URI-Template eingeben.');
+      if(source.length>50000)throw new Error('Die Eingabe darf höchstens 50.000 Zeichen enthalten.');
+      if(/[\u0000-\u001f\u007f]/.test(source))throw new Error('Die Eingabe enthält unzulässige Steuerzeichen.');
+      const warnings=[];const expressions=[];let literalLength=0;let unmatchedClosing=0;let invalidLiteralPercent=0;let index=0;
+      while(index<source.length){if(source[index]==='}'){unmatchedClosing+=1;index+=1;continue}if(source[index]!=='{'){if(source[index]==='%'){const token=source.slice(index,index+3);if(!/^%[0-9A-Fa-f]{2}$/.test(token))invalidLiteralPercent+=1;else index+=2}literalLength+=1;index+=1;continue}const close=source.indexOf('}',index+1);if(close<0){warnings.push('Mindestens ein Ausdruck besitzt keine schließende Klammer.');break}const body=source.slice(index+1,close);if(body.includes('{'))warnings.push('Mindestens ein Ausdruck enthält eine verschachtelte öffnende Klammer.');expressions.push(body);if(expressions.length>1000)throw new Error('Das Template enthält mehr als 1.000 Ausdrücke.');if(body.length>10000)throw new Error('Ein einzelner Ausdruck überschreitet 10.000 Zeichen.');index=close+1}
+      const operators={simple:0,reserved:0,fragment:0,label:0,path:0,matrix:0,query:0,continuation:0};const seen=new Set();let variables=0;let duplicateVariables=0;let exploded=0;let prefixed=0;let dottedNames=0;let encodedNames=0;let invalidVariables=0;let emptyVariables=0;let maximumVariables=0;
+      for(const body of expressions){let operator='';let content=body;if(operatorSet.has(body[0])){operator=body[0];content=body.slice(1)}if(operator==='')operators.simple+=1;else if(operator==='+')operators.reserved+=1;else if(operator==='#')operators.fragment+=1;else if(operator==='.')operators.label+=1;else if(operator==='/')operators.path+=1;else if(operator===';')operators.matrix+=1;else if(operator==='?')operators.query+=1;else if(operator==='&')operators.continuation+=1;if(content===''){warnings.push('Mindestens ein Ausdruck enthält keine Variable.');continue}const specs=content.split(',');maximumVariables=Math.max(maximumVariables,specs.length);for(const rawSpec of specs){variables+=1;if(variables>5000)throw new Error('Das Template enthält mehr als 5.000 Variablen.');const spec=rawSpec.trim();if(!spec){emptyVariables+=1;invalidVariables+=1;continue}if(/\s/.test(rawSpec)){invalidVariables+=1;continue}const hasExplode=spec.endsWith('*');const prefixMatch=/:([0-9]+)$/.exec(spec);if(hasExplode)exploded+=1;if(prefixMatch)prefixed+=1;if(hasExplode&&prefixMatch){invalidVariables+=1;continue}let name=spec;if(hasExplode)name=spec.slice(0,-1);if(prefixMatch){const length=Number(prefixMatch[1]);name=spec.slice(0,-prefixMatch[0].length);if(prefixMatch[1].length>4||length<1||length>9999)invalidVariables+=1}if(!validName(name)){invalidVariables+=1;continue}if(name.includes('.'))dottedNames+=1;if(name.includes('%'))encodedNames+=1;if(seen.has(name))duplicateVariables+=1;seen.add(name)}}
+      if(unmatchedClosing)warnings.push(unmatchedClosing+' schließende Klammern besitzen keinen passenden Ausdrucksbeginn.');if(invalidLiteralPercent)warnings.push(invalidLiteralPercent+' ungültige Prozenttripel wurden im Literalteil erkannt.');if(emptyVariables)warnings.push(emptyVariables+' leere Variablenpositionen wurden erkannt.');if(invalidVariables)warnings.push(invalidVariables+' ungültige Variablenspezifikationen wurden erkannt.');if(duplicateVariables)warnings.push(duplicateVariables+' wiederholte Variablenbezüge wurden erkannt.');
+      return{characters:source.length,literalLength,expressions:expressions.length,variables,uniqueVariables:seen.size,duplicateVariables,exploded,prefixed,dottedNames,encodedNames,invalidVariables,maximumVariables,operators,warnings:unique(warnings)}
+    }
+    function clearOutputs(text){statusOutput.textContent='Nicht verfügbar';structureOutput.replaceChildren(item('Auswertung','Nicht verfügbar'));operatorsOutput.replaceChildren(item('Auswertung','Nicht verfügbar'));variablesOutput.replaceChildren(item('Auswertung','Nicht verfügbar'));warningsOutput.replaceChildren(item('Auswertung','Nicht verfügbar'));message.className='note message warning';message.textContent=text}
+    function check(){try{const result=analyze(input.value);statusOutput.textContent=result.expressions+(result.expressions===1?' Ausdruck':' Ausdrücke')+' · '+result.variables+' Variable'+(result.variables===1?'':'n')+' · '+result.warnings.length+' Prüfhinweis'+(result.warnings.length===1?'':'e');structureOutput.replaceChildren(item('Zeichen',result.characters),item('Literalzeichen',result.literalLength),item('Ausdrücke',result.expressions),item('Variablenbezüge',result.variables),item('eindeutige Variablen',result.uniqueVariables),item('größte Variablenliste',result.maximumVariables));operatorsOutput.replaceChildren(item('einfache Ausdrücke',result.operators.simple),item('reservierte Erweiterungen',result.operators.reserved),item('Fragmenterweiterungen',result.operators.fragment),item('Punktsegmente',result.operators.label),item('Pfadsegmente',result.operators.path),item('Matrixparameter',result.operators.matrix),item('Abfragebeginne',result.operators.query),item('Abfragefortsetzungen',result.operators.continuation));variablesOutput.replaceChildren(item('Explosionsmarkierungen',result.exploded),item('Präfixbegrenzungen',result.prefixed),item('gepunktete Variablennamen',result.dottedNames),item('prozentkodierte Variablennamen',result.encodedNames),item('wiederholte Variablenbezüge',result.duplicateVariables),item('ungültige Variablenspezifikationen',result.invalidVariables));warningsOutput.replaceChildren(...(result.warnings.length?result.warnings.map(warning=>item('Prüfhinweis',warning)):[item('Prüfung','keine der geprüften Auffälligkeiten erkannt')]));message.className='note message';message.textContent='Das URI-Template wurde ausschließlich lokal ausgewertet. Pfade und Variablennamen werden nicht ausgegeben.'}catch(error){clearOutputs(error.message)}}
+    document.querySelector('#check').addEventListener('click',check);document.querySelector('#sample').addEventListener('click',()=>{input.value=sampleTemplate;check()});check();
+  </script>
+</body>
+</html>
