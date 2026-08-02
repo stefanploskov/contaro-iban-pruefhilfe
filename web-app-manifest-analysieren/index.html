@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Web-App-Manifest lokal analysieren | Contaro e.U.</title>
+  <meta name="description" content="Kostenlose lokale Contaro Arbeitshilfe zum Prüfen von Web-App-Manifesten, Startbereich, Darstellung, Farben, Icons, Screenshots und erweiterten Funktionen.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://stefanploskov.github.io/contaro-iban-pruefhilfe/web-app-manifest-analysieren/">
+
+  <style>
+    textarea { width: 100%; min-height: 360px; padding: 12px; border: 1px solid #aeb7ad; border-radius: 9px; resize: vertical; font: .84rem/1.48 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .button-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .secondary { border: 1px solid #bdc9bf; background: #fff; color: #174e2a; }
+    .status { margin-top: 18px; padding: 15px; border-radius: 11px; background: #edf2eb; }
+    .status span { display: block; color: #586059; font-size: .8rem; }
+    .status strong { display: block; margin-top: 5px; font-size: 1.08rem; overflow-wrap: anywhere; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+    .panel { min-width: 0; padding: 15px; border-radius: 11px; background: #edf2eb; }
+    .panel h3 { margin-top: 0; }
+    .facts { margin: 0; padding: 0; list-style: none; }
+    .facts li { padding: 8px 0; border-bottom: 1px solid #d4ddd3; overflow-wrap: anywhere; }
+    .facts li:last-child { border-bottom: 0; }
+    .facts span { display: block; color: #586059; font-size: .78rem; }
+    .hint { color: #586059; font-size: .92rem; line-height: 1.55; }
+    .message { min-height: 24px; }
+    .warning { color: #8b2f1a; }
+    @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Kostenlose Arbeitshilfe · Contaro e.U.</p>
+    <h1>Web-App-Manifest lokal analysieren</h1>
+    <p class="intro">Prüfe Aufbau, Startbereich, Darstellung, Ausrichtung, Farben, Icons, Screenshots, Kurzbefehle und erweiterte Web-App-Funktionen ohne Upload.</p>
+
+    <section class="card" aria-labelledby="manifest-heading">
+      <h2 id="manifest-heading">Manifest eingeben</h2>
+      <label for="manifest-input">Web-App-Manifest als JSON</label>
+      <textarea id="manifest-input" spellcheck="false" autocomplete="off">{
+  "name": "Contaro Beispiel",
+  "short_name": "Beispiel",
+  "id": "/app/",
+  "start_url": "/app/",
+  "scope": "/app/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#355f45",
+  "icons": [
+    {"src": "/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}</textarea>
+      <div class="button-row">
+        <button id="check" type="button">Manifest prüfen</button>
+        <button id="sample" class="secondary" type="button">Beispiel wiederherstellen</button>
+      </div>
+      <p id="message" class="hint message">Das Manifest wurde ausschließlich lokal ausgewertet.</p>
+
+      <div class="status" aria-live="polite">
+        <span>Manifeststruktur und Prüfstand</span>
+        <strong id="status">2 Icons · 1 Startziel · 0 Prüfhinweise</strong>
+      </div>
+      <div class="grid">
+        <div class="panel"><h3>Grundaufbau</h3><ul id="structure" class="facts"></ul></div>
+        <div class="panel"><h3>Navigation und Anzeige</h3><ul id="navigation" class="facts"></ul></div>
+        <div class="panel"><h3>Medien und Funktionen</h3><ul id="media" class="facts"></ul></div>
+        <div class="panel"><h3>Prüfhinweise</h3><ul id="warnings" class="facts"></ul></div>
+      </div>
+    </section>
+
+    <p class="hint">Die Analyse erfolgt ausschließlich lokal im Browser. Es werden keine Manifestinhalte gespeichert, übertragen, aufgerufen oder ausgeführt. Namen, Beschreibungen, URLs, Dateipfade und andere Feldwerte erscheinen nicht in den Ergebnislisten. Die Prüfung deckt verbreitete Manifestregeln ab und ersetzt keinen Test in den Zielbrowsern.</p>
+    <p><a href="https://www.contaro.net/funktionen">Funktionen von Contaro ansehen</a></p>
+    <nav><a href="../">Weitere Arbeitshilfen</a></nav>
+    <footer>Contaro e.U., Ruffenbrunnerstraße 13, 2352 Gumpoldskirchen, Österreich</footer>
+  </main>
+
+  <script>
+    const sampleManifest = document.querySelector('#manifest-input').value;
+    const input = document.querySelector('#manifest-input');
+    const statusOutput = document.querySelector('#status');
+    const structureOutput = document.querySelector('#structure');
+    const navigationOutput = document.querySelector('#navigation');
+    const mediaOutput = document.querySelector('#media');
+    const warningsOutput = document.querySelector('#warnings');
+    const message = document.querySelector('#message');
+    const baseUrl = 'https://example.invalid/app/manifest.webmanifest';
+    const allowedDisplay = new Set(['fullscreen', 'standalone', 'minimal-ui', 'browser', 'window-controls-overlay', 'borderless']);
+    const allowedOrientation = new Set(['any', 'natural', 'landscape', 'landscape-primary', 'landscape-secondary', 'portrait', 'portrait-primary', 'portrait-secondary']);
+    const allowedPurpose = new Set(['any', 'maskable', 'monochrome']);
+    const knownKeys = new Set(['name', 'short_name', 'description', 'id', 'start_url', 'scope', 'display', 'display_override', 'orientation', 'theme_color', 'background_color', 'icons', 'screenshots', 'shortcuts', 'categories', 'related_applications', 'prefer_related_applications', 'protocol_handlers', 'share_target', 'file_handlers', 'dir', 'lang', 'iarc_rating_id', 'launch_handler', 'note_taking', 'scope_extensions', 'serviceworker', 'edge_side_panel']);
+
+    function item(label, value) {
+      const element = document.createElement('li');
+      const name = document.createElement('span');
+      name.textContent = label;
+      element.append(name, document.createTextNode(String(value)));
+      return element;
+    }
+    function object(value) { return value !== null && typeof value === 'object' && !Array.isArray(value); }
+    function nonEmpty(value) { return typeof value === 'string' && value.trim() !== ''; }
+    function unique(values) { return [...new Set(values)]; }
+    function validColor(value) {
+      return nonEmpty(value) && (/^#[0-9a-f]{3,8}$/i.test(value.trim()) || /^(?:rgb|rgba|hsl|hsla)\([^\r\n]{3,120}\)$/i.test(value.trim()) || /^[a-z]{3,30}$/i.test(value.trim()));
+    }
+    function safeUrl(value) {
+      if (!nonEmpty(value) || value.length > 4096) return null;
+      try {
+        const url = new URL(value, baseUrl);
+        return /^https?:$/.test(url.protocol) ? url : null;
+      } catch { return null; }
+    }
+    function inspectLimits(root) {
+      let nodes = 0;
+      let keys = 0;
+      let strings = 0;
+      let maximumDepth = 0;
+      const stack = [{ value: root, depth: 0 }];
+      while (stack.length) {
+        const current = stack.pop();
+        nodes += 1;
+        maximumDepth = Math.max(maximumDepth, current.depth);
+        if (nodes > 20000) throw new Error('Das Manifest enthält zu viele verschachtelte Werte.');
+        if (maximumDepth > 30) throw new Error('Das Manifest überschreitet die maximale Verschachtelungstiefe von 30 Ebenen.');
+        if (typeof current.value === 'string') {
+          strings += 1;
+          if (current.value.length > 20000) throw new Error('Ein einzelner Textwert überschreitet 20.000 Zeichen.');
+        } else if (Array.isArray(current.value)) {
+          if (current.value.length > 5000) throw new Error('Eine Liste enthält mehr als 5.000 Einträge.');
+          for (const value of current.value) stack.push({ value, depth: current.depth + 1 });
+        } else if (object(current.value)) {
+          const entries = Object.entries(current.value);
+          keys += entries.length;
+          if (entries.length > 2000) throw new Error('Ein Objekt enthält mehr als 2.000 Felder.');
+          if (keys > 10000) throw new Error('Das Manifest enthält mehr als 10.000 Felder.');
+          for (const [, value] of entries) stack.push({ value, depth: current.depth + 1 });
+        }
+      }
+      return { nodes, keys, strings, maximumDepth };
+    }
+    function validateMediaArray(value, kind, warnings) {
+      if (value === undefined) return { count: 0, size192: 0, size512: 0, maskable: 0, wide: 0, narrow: 0 };
+      if (!Array.isArray(value)) { warnings.push(kind + ' müssen als Liste angegeben sein.'); return { count: 0, size192: 0, size512: 0, maskable: 0, wide: 0, narrow: 0 }; }
+      const result = { count: value.length, size192: 0, size512: 0, maskable: 0, wide: 0, narrow: 0 };
+      const signatures = new Set();
+      let duplicates = 0;
+      value.forEach((entry) => {
+        if (!object(entry)) { warnings.push(kind + ' enthalten mindestens einen Eintrag ohne Objektstruktur.'); return; }
+        if (!safeUrl(entry.src)) warnings.push(kind + ' enthalten mindestens eine fehlende oder nicht sichere Quellenangabe.');
+        const sizes = nonEmpty(entry.sizes) ? entry.sizes.trim().split(/\s+/) : [];
+        if (entry.sizes !== undefined && (!nonEmpty(entry.sizes) || sizes.some((size) => size !== 'any' && !/^\d+x\d+$/i.test(size)))) warnings.push(kind + ' enthalten mindestens eine ungültige Größenangabe.');
+        if (sizes.some((size) => /^192x192$/i.test(size))) result.size192 += 1;
+        if (sizes.some((size) => /^512x512$/i.test(size))) result.size512 += 1;
+        if (entry.type !== undefined && (!nonEmpty(entry.type) || !/^[a-z0-9!#$&^_.+-]+\/[a-z0-9!#$&^_.+-]+$/i.test(entry.type.trim()))) warnings.push(kind + ' enthalten mindestens einen ungültigen Medientyp.');
+        const purposes = nonEmpty(entry.purpose) ? entry.purpose.trim().split(/\s+/) : ['any'];
+        if (entry.purpose !== undefined && (!nonEmpty(entry.purpose) || purposes.some((purpose) => !allowedPurpose.has(purpose)))) warnings.push(kind + ' enthalten mindestens einen ungültigen Verwendungszweck.');
+        if (purposes.includes('maskable')) result.maskable += 1;
+        if (entry.form_factor !== undefined) {
+          if (entry.form_factor === 'wide') result.wide += 1;
+          else if (entry.form_factor === 'narrow') result.narrow += 1;
+          else warnings.push(kind + ' enthalten mindestens einen ungültigen Formfaktor.');
+        }
+        const signature = JSON.stringify([entry.src, entry.sizes || '', entry.purpose || 'any', entry.form_factor || '']);
+        if (signatures.has(signature)) duplicates += 1;
+        signatures.add(signature);
+      });
+      if (duplicates) warnings.push(kind + ' enthalten ' + duplicates + ' vollständig doppelte Medieneinträge.');
+      return result;
+    }
+
+    function analyze(source) {
+      if (source.trim() === '') throw new Error('Bitte ein Web-App-Manifest eingeben.');
+      if (source.length > 150000) throw new Error('Die Eingabe darf höchstens 150.000 Zeichen enthalten.');
+      let manifest;
+      try { manifest = JSON.parse(source); } catch { throw new Error('Das Manifest ist kein gültiges JSON.'); }
+      if (!object(manifest)) throw new Error('Die oberste Manifestebene muss ein JSON-Objekt sein.');
+      const limits = inspectLimits(manifest);
+      const warnings = [];
+      const unknownKeys = Object.keys(manifest).filter((key) => !knownKeys.has(key)).length;
+      if (!nonEmpty(manifest.name) && !nonEmpty(manifest.short_name)) warnings.push('Mindestens ein nicht leerer Name oder Kurzname sollte angegeben sein.');
+      if (manifest.name !== undefined && !nonEmpty(manifest.name)) warnings.push('Der Name muss als nicht leerer Text angegeben sein.');
+      if (manifest.short_name !== undefined && !nonEmpty(manifest.short_name)) warnings.push('Der Kurzname muss als nicht leerer Text angegeben sein.');
+      if (manifest.description !== undefined && typeof manifest.description !== 'string') warnings.push('Die Beschreibung muss als Text angegeben sein.');
+
+      const start = manifest.start_url === undefined ? null : safeUrl(manifest.start_url);
+      const scope = manifest.scope === undefined ? null : safeUrl(manifest.scope);
+      const id = manifest.id === undefined ? null : safeUrl(manifest.id);
+      if (manifest.start_url !== undefined && !start) warnings.push('Das Startziel fehlt oder verwendet keine sichere HTTP-Adresse.');
+      if (manifest.scope !== undefined && !scope) warnings.push('Der Geltungsbereich fehlt oder verwendet keine sichere HTTP-Adresse.');
+      if (manifest.id !== undefined && !id) warnings.push('Die App-ID fehlt oder verwendet keine sichere HTTP-Adresse.');
+      if (nonEmpty(manifest.id) && manifest.id.includes('#')) warnings.push('Die App-ID sollte kein Fragment enthalten.');
+      if (start && scope && (start.origin !== scope.origin || !start.pathname.startsWith(scope.pathname))) warnings.push('Das Startziel liegt außerhalb des angegebenen Geltungsbereichs.');
+      if (manifest.display !== undefined && (!nonEmpty(manifest.display) || !allowedDisplay.has(manifest.display))) warnings.push('Der Darstellungsmodus ist nicht als verbreiteter Manifestwert bekannt.');
+      if (manifest.display_override !== undefined && (!Array.isArray(manifest.display_override) || !manifest.display_override.length || manifest.display_override.some((value) => !allowedDisplay.has(value)))) warnings.push('Die Darstellungsreihenfolge enthält ungültige oder fehlende Modi.');
+      if (manifest.orientation !== undefined && (!nonEmpty(manifest.orientation) || !allowedOrientation.has(manifest.orientation))) warnings.push('Die Bildschirmausrichtung ist ungültig.');
+      if (manifest.theme_color !== undefined && !validColor(manifest.theme_color)) warnings.push('Die Themenfarbe besitzt keine unterstützte CSS-Farbform.');
+      if (manifest.background_color !== undefined && !validColor(manifest.background_color)) warnings.push('Die Hintergrundfarbe besitzt keine unterstützte CSS-Farbform.');
+
+      const icons = validateMediaArray(manifest.icons, 'Icons', warnings);
+      const screenshots = validateMediaArray(manifest.screenshots, 'Screenshots', warnings);
+      if (manifest.icons !== undefined && Array.isArray(manifest.icons)) {
+        if (!icons.size192) warnings.push('Es wurde kein Icon mit 192 x 192 Pixeln erkannt.');
+        if (!icons.size512) warnings.push('Es wurde kein Icon mit 512 x 512 Pixeln erkannt.');
+        if (!icons.maskable) warnings.push('Es wurde kein maskierbares Icon erkannt.');
+      }
+      let shortcuts = 0;
+      let shortcutIcons = 0;
+      if (manifest.shortcuts !== undefined) {
+        if (!Array.isArray(manifest.shortcuts)) warnings.push('Kurzbefehle müssen als Liste angegeben sein.');
+        else {
+          shortcuts = manifest.shortcuts.length;
+          manifest.shortcuts.forEach((entry) => {
+            if (!object(entry) || !nonEmpty(entry.name) || !safeUrl(entry.url)) warnings.push('Mindestens ein Kurzbefehl besitzt keinen gültigen Namen oder kein sicheres Ziel.');
+            if (object(entry) && entry.icons !== undefined) shortcutIcons += validateMediaArray(entry.icons, 'Kurzbefehl-Icons', warnings).count;
+          });
+        }
+      }
+      let categories = 0;
+      if (manifest.categories !== undefined) {
+        if (!Array.isArray(manifest.categories) || manifest.categories.some((value) => !nonEmpty(value))) warnings.push('Kategorien müssen als Liste nicht leerer Texte angegeben sein.');
+        else categories = manifest.categories.length;
+      }
+      let relatedApplications = 0;
+      if (manifest.related_applications !== undefined) {
+        if (!Array.isArray(manifest.related_applications)) warnings.push('Verwandte Anwendungen müssen als Liste angegeben sein.');
+        else {
+          relatedApplications = manifest.related_applications.length;
+          if (manifest.related_applications.some((entry) => !object(entry) || (!nonEmpty(entry.platform) && !safeUrl(entry.url)))) warnings.push('Mindestens eine verwandte Anwendung besitzt keine verwertbare Plattform- oder Zielangabe.');
+        }
+      }
+      if (manifest.prefer_related_applications !== undefined && typeof manifest.prefer_related_applications !== 'boolean') warnings.push('Die Bevorzugung verwandter Anwendungen muss ein Wahrheitswert sein.');
+      const structuredFields = ['protocol_handlers', 'share_target', 'file_handlers', 'launch_handler', 'note_taking', 'scope_extensions', 'serviceworker', 'edge_side_panel'];
+      const advancedFeatures = structuredFields.filter((key) => manifest[key] !== undefined).length;
+      if (manifest.protocol_handlers !== undefined && (!Array.isArray(manifest.protocol_handlers) || manifest.protocol_handlers.some((entry) => !object(entry) || !nonEmpty(entry.protocol) || !safeUrl(entry.url)))) warnings.push('Protokollhandler müssen als vollständige Liste aus Protokoll und sicherem Ziel angegeben sein.');
+      if (manifest.share_target !== undefined && !object(manifest.share_target)) warnings.push('Das Freigabeziel muss als Objekt angegeben sein.');
+      if (manifest.file_handlers !== undefined && (!Array.isArray(manifest.file_handlers) || manifest.file_handlers.some((entry) => !object(entry) || !safeUrl(entry.action) || !object(entry.accept)))) warnings.push('Dateihandler müssen als vollständige Liste aus Aktion und Akzeptanzregeln angegeben sein.');
+      if (unknownKeys) warnings.push(unknownKeys + ' unbekannte Felder wurden erkannt und nicht inhaltlich bewertet.');
+      return {
+        limits,
+        topFields: Object.keys(manifest).length,
+        unknownKeys,
+        hasName: nonEmpty(manifest.name),
+        hasShortName: nonEmpty(manifest.short_name),
+        hasDescription: typeof manifest.description === 'string',
+        startCount: start ? 1 : 0,
+        scopeCount: scope ? 1 : 0,
+        idCount: id ? 1 : 0,
+        displayCount: allowedDisplay.has(manifest.display) ? 1 : 0,
+        displayFallbacks: Array.isArray(manifest.display_override) ? manifest.display_override.length : 0,
+        orientationCount: allowedOrientation.has(manifest.orientation) ? 1 : 0,
+        colorCount: [manifest.theme_color, manifest.background_color].filter(validColor).length,
+        icons,
+        screenshots,
+        shortcuts,
+        shortcutIcons,
+        categories,
+        relatedApplications,
+        advancedFeatures,
+        warnings: unique(warnings)
+      };
+    }
+
+    function clearOutputs(text) {
+      statusOutput.textContent = 'Nicht verfügbar';
+      structureOutput.replaceChildren(item('Auswertung', 'Nicht verfügbar'));
+      navigationOutput.replaceChildren(item('Auswertung', 'Nicht verfügbar'));
+      mediaOutput.replaceChildren(item('Auswertung', 'Nicht verfügbar'));
+      warningsOutput.replaceChildren(item('Auswertung', 'Nicht verfügbar'));
+      message.className = 'hint message warning';
+      message.textContent = text;
+    }
+
+    function check() {
+      try {
+        const result = analyze(input.value);
+        statusOutput.textContent = result.icons.count + ' Icon' + (result.icons.count === 1 ? '' : 's') + ' · ' + result.startCount + ' Startziel' + (result.startCount === 1 ? '' : 'e') + ' · ' + result.warnings.length + ' Prüfhinweis' + (result.warnings.length === 1 ? '' : 'e');
+        structureOutput.replaceChildren(
+          item('Felder auf oberster Ebene', result.topFields),
+          item('Name vorhanden', result.hasName ? 'ja' : 'nein'),
+          item('Kurzname vorhanden', result.hasShortName ? 'ja' : 'nein'),
+          item('Beschreibung vorhanden', result.hasDescription ? 'ja' : 'nein'),
+          item('unbekannte Felder', result.unknownKeys),
+          item('verschachtelte Werte', result.limits.nodes),
+          item('maximale Tiefe', result.limits.maximumDepth)
+        );
+        navigationOutput.replaceChildren(
+          item('gültiges Startziel', result.startCount),
+          item('gültiger Geltungsbereich', result.scopeCount),
+          item('gültige App-ID', result.idCount),
+          item('gültiger Darstellungsmodus', result.displayCount),
+          item('Darstellungsalternativen', result.displayFallbacks),
+          item('gültige Ausrichtung', result.orientationCount),
+          item('gültige Farbangaben', result.colorCount)
+        );
+        mediaOutput.replaceChildren(
+          item('Icons', result.icons.count),
+          item('Icons mit 192 x 192', result.icons.size192),
+          item('Icons mit 512 x 512', result.icons.size512),
+          item('maskierbare Icons', result.icons.maskable),
+          item('Screenshots', result.screenshots.count),
+          item('weite Screenshots', result.screenshots.wide),
+          item('schmale Screenshots', result.screenshots.narrow),
+          item('Kurzbefehle', result.shortcuts),
+          item('Kurzbefehl-Icons', result.shortcutIcons),
+          item('Kategorien', result.categories),
+          item('verwandte Anwendungen', result.relatedApplications),
+          item('erweiterte Funktionsfelder', result.advancedFeatures)
+        );
+        warningsOutput.replaceChildren(...(result.warnings.length ? result.warnings.map((warning) => item('Prüfhinweis', warning)) : [item('Prüfung', 'keine der geprüften Auffälligkeiten erkannt')]));
+        message.className = 'hint message';
+        message.textContent = 'Das Web-App-Manifest wurde ausschließlich lokal ausgewertet. Feldwerte, URLs und Dateipfade werden nicht ausgegeben.';
+      } catch (error) { clearOutputs(error.message); }
+    }
+
+    document.querySelector('#check').addEventListener('click', check);
+    document.querySelector('#sample').addEventListener('click', () => { input.value = sampleManifest; check(); });
+    check();
+  </script>
+</body>
+</html>
