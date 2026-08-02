@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TOML lokal analysieren | Contaro e.U.</title>
+  <meta name="description" content="Kostenlose lokale Contaro Arbeitshilfe zum Prüfen von TOML-Tabellen, Schlüsseln, Werttypen, Arrays, Inline-Tabellen und typischen Strukturfehlern.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://stefanploskov.github.io/contaro-iban-pruefhilfe/toml-analysieren/">
+  <style>
+    :root{color-scheme:light;--ink:#242823;--muted:#656a64;--line:#d9ddd7;--paper:#f4f2ed;--card:#fff;--accent:#315b43;--soft:#e7eee8;--bad:#922e24}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{width:min(900px,calc(100% - 32px));margin:48px auto}.eyebrow{color:var(--accent);font-weight:700;letter-spacing:.08em;text-transform:uppercase}h1{font-size:clamp(2rem,6vw,3.8rem);line-height:1.04;margin:.35em 0}.intro{max-width:72ch;color:var(--muted);font-size:1.08rem}.card{margin-top:28px;padding:24px;border:1px solid var(--line);border-radius:18px;background:var(--card);box-shadow:0 10px 34px rgba(35,45,38,.06)}label{display:block;margin-top:12px;font-weight:700}textarea{width:100%;min-height:360px;margin-top:7px;padding:13px;border:1px solid #bfc5be;border-radius:10px;background:#fff;color:var(--ink);resize:vertical;font:.86rem/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}button{border:0;border-radius:10px;padding:12px 16px;background:var(--accent);color:#fff;font:700 1rem/1 system-ui;cursor:pointer}.secondary{border:1px solid #bec8bf;background:#fff;color:var(--accent)}.status{margin-top:18px;padding:15px;border-radius:12px;background:var(--soft)}.status span{display:block;color:var(--muted);font-size:.8rem}.status strong{display:block;margin-top:4px;font-size:1.08rem;overflow-wrap:anywhere}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.panel{min-width:0;padding:15px;border-radius:12px;background:var(--soft)}.panel h3{margin-top:0}.facts{margin:0;padding:0;list-style:none}.facts li{padding:8px 0;border-bottom:1px solid #d0d9d1;overflow-wrap:anywhere}.facts li:last-child{border-bottom:0}.facts span{display:block;color:var(--muted);font-size:.78rem}.note{color:var(--muted);font-size:.92rem}.message{min-height:24px}.warning{color:var(--bad)}nav,footer{margin-top:26px}footer{padding-top:20px;border-top:1px solid var(--line);color:var(--muted)}a{color:var(--accent);font-weight:700}@media(max-width:700px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Kostenlose Arbeitshilfe · Contaro e.U.</p>
+    <h1>TOML lokal analysieren</h1>
+    <p class="intro">Prüfe Tabellen, Tabellenlisten, gepunktete und quotierte Schlüssel, Werttypen, Arrays, Inline-Tabellen, Dubletten und typische Syntaxprobleme ohne Upload.</p>
+    <section class="card" aria-labelledby="toml-heading">
+      <h2 id="toml-heading">TOML-Inhalt eingeben</h2>
+      <label for="toml-input">TOML-Konfiguration als Text</label>
+      <textarea id="toml-input" spellcheck="false" autocomplete="off">title = "Contaro Beispiel"
+aktiv = true
+
+[server]
+port = 8080
+hosts = ["at.example.invalid", "de.example.invalid"]
+
+[server.optionen]
+timeout = 30.5</textarea>
+      <div class="actions">
+        <button id="check" type="button">TOML prüfen</button>
+        <button id="sample" class="secondary" type="button">Beispiel wiederherstellen</button>
+      </div>
+      <p id="message" class="note message">Die TOML-Struktur wurde ausschließlich lokal ausgewertet.</p>
+      <div class="status" aria-live="polite"><span>TOML-Struktur und Prüfstand</span><strong id="status">2 Tabellen · 5 Schlüssel · 0 Prüfhinweise</strong></div>
+      <div class="grid">
+        <div class="panel"><h3>Aufbau</h3><ul id="structure" class="facts"></ul></div>
+        <div class="panel"><h3>Schlüssel</h3><ul id="keys" class="facts"></ul></div>
+        <div class="panel"><h3>Werttypen</h3><ul id="values" class="facts"></ul></div>
+        <div class="panel"><h3>Prüfhinweise</h3><ul id="warnings" class="facts"></ul></div>
+      </div>
+    </section>
+    <p class="note">Die Analyse erfolgt ausschließlich lokal im Browser. Es werden keine Inhalte gespeichert, übertragen oder ausgeführt. Tabellenpfade, Schlüssel, Texte, URLs und andere Werte erscheinen nicht in den Ergebnissen. Die Hinweise prüfen verbreitete TOML-Grundregeln und ersetzen keine Ausführung mit dem Parser deiner Zielanwendung.</p>
+    <p><a href="https://www.contaro.net/funktionen">Funktionen von Contaro ansehen</a></p>
+    <nav><a href="../">Weitere Arbeitshilfen</a></nav>
+    <footer>Contaro e.U., Ruffenbrunnerstraße 13, 2352 Gumpoldskirchen, Österreich</footer>
+  </main>
+  <script>
+    const sampleToml=document.querySelector('#toml-input').value;
+    const input=document.querySelector('#toml-input');
+    const statusOutput=document.querySelector('#status');
+    const structureOutput=document.querySelector('#structure');
+    const keysOutput=document.querySelector('#keys');
+    const valuesOutput=document.querySelector('#values');
+    const warningsOutput=document.querySelector('#warnings');
+    const message=document.querySelector('#message');
+    const sensitivePattern=/(?:^|[_.-])(?:pass(?:word)?|secret|token|auth|api[_-]?key|private[_-]?key|cookie|session|credential)(?:$|[_.-])/i;
+
+    function item(label,value){const element=document.createElement('li');const name=document.createElement('span');name.textContent=label;element.append(name,document.createTextNode(String(value)));return element}
+    function unique(values){return[...new Set(values)]}
+    function stripComment(line){let quote='';let escaped=false;for(let i=0;i<line.length;i+=1){const ch=line[i];if(quote==='"'){if(escaped){escaped=false;continue}if(ch==='\\'){escaped=true;continue}if(ch==='"')quote='';continue}if(quote==="'"){if(ch==="'")quote='';continue}if(ch==='"'||ch==="'"){quote=ch;continue}if(ch==='#')return line.slice(0,i)}return line}
+    function splitOutside(text,separator){const parts=[];let start=0;let quote='';let escaped=false;let square=0;let curly=0;for(let i=0;i<text.length;i+=1){const ch=text[i];if(quote==='"'){if(escaped){escaped=false;continue}if(ch==='\\'){escaped=true;continue}if(ch==='"')quote='';continue}if(quote==="'"){if(ch==="'")quote='';continue}if(ch==='"'||ch==="'"){quote=ch;continue}if(ch==='[')square+=1;else if(ch===']')square-=1;else if(ch==='{')curly+=1;else if(ch==='}')curly-=1;else if(ch===separator&&square===0&&curly===0){parts.push(text.slice(start,i));start=i+1}}parts.push(text.slice(start));return parts}
+    function findEqual(text){let quote='';let escaped=false;for(let i=0;i<text.length;i+=1){const ch=text[i];if(quote==='"'){if(escaped){escaped=false;continue}if(ch==='\\'){escaped=true;continue}if(ch==='"')quote='';continue}if(quote==="'"){if(ch==="'")quote='';continue}if(ch==='"'||ch==="'"){quote=ch;continue}if(ch==='=')return i}return-1}
+    function parseKey(text){const source=text.trim();if(!source||source.length>2000)return null;const parts=splitOutside(source,'.').map(part=>part.trim());if(parts.some(part=>!part))return null;let quoted=0;for(const part of parts){if(/^[A-Za-z0-9_-]+$/.test(part))continue;if(/^"(?:[^"\\]|\\.)*"$/.test(part)||/^'[^']*'$/.test(part)){quoted+=1;continue}return null}return{parts,quoted,dotted:parts.length>1}}
+    function balance(value){let square=0;let curly=0;let quote='';let escaped=false;for(let i=0;i<value.length;i+=1){const ch=value[i];if(quote==='"'){if(escaped){escaped=false;continue}if(ch==='\\'){escaped=true;continue}if(ch==='"')quote='';continue}if(quote==="'"){if(ch==="'")quote='';continue}if(ch==='"'||ch==="'"){quote=ch;continue}if(ch==='[')square+=1;else if(ch===']')square-=1;else if(ch==='{')curly+=1;else if(ch==='}')curly-=1}return{square,curly}}
+    function classify(value,warnings,counts){const trimmed=value.trim();if(!trimmed){warnings.push('Mindestens eine Zuweisung besitzt keinen Wert.');counts.invalid+=1;return}if((trimmed.startsWith('"""')&&trimmed.endsWith('"""'))||(trimmed.startsWith("'''")&&trimmed.endsWith("'''"))){counts.multilineStrings+=1;return}if(/^"(?:[^"\\]|\\.)*"$/.test(trimmed)||/^'[^']*'$/.test(trimmed)){counts.strings+=1;return}if(/^(?:true|false)$/.test(trimmed)){counts.booleans+=1;return}if(/^\d{4}-\d{2}-\d{2}(?:[Tt ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:[Zz]|[+-]\d{2}:\d{2})?)?$/.test(trimmed)||/^\d{2}:\d{2}:\d{2}(?:\.\d+)?$/.test(trimmed)){counts.dates+=1;return}if(/^[+-]?(?:0x[0-9A-Fa-f](?:_?[0-9A-Fa-f])*|0o[0-7](?:_?[0-7])*|0b[01](?:_?[01])*|(?:0|[1-9](?:_?\d)*))$/.test(trimmed)){counts.integers+=1;return}if(/^[+-]?(?:(?:\d(?:_?\d)*)?\.\d(?:_?\d)*(?:[eE][+-]?\d(?:_?\d)*)?|\d(?:_?\d)*[eE][+-]?\d(?:_?\d)*|inf|nan)$/.test(trimmed)){counts.floats+=1;return}if(trimmed.startsWith('[')&&trimmed.endsWith(']')){counts.arrays+=1;const inner=trimmed.slice(1,-1).trim();if(inner)counts.arrayItems+=splitOutside(inner,',').filter(part=>part.trim()).length;return}if(trimmed.startsWith('{')&&trimmed.endsWith('}')){counts.inlineTables+=1;const inner=trimmed.slice(1,-1).trim();if(inner){const entries=splitOutside(inner,',').filter(part=>part.trim());counts.inlineEntries+=entries.length;if(entries.some(entry=>findEqual(entry)<1))warnings.push('Mindestens eine Inline-Tabelle enthält einen ungültigen Eintrag.')}return}if(/^[+-]?[\d_.]+$/.test(trimmed)&&(/__|^_|_$/.test(trimmed)))warnings.push('Mindestens ein Zahlenwert verwendet Unterstriche an einer ungültigen Position.');else warnings.push('Mindestens ein Wert konnte keiner verbreiteten TOML-Wertform zugeordnet werden.');counts.invalid+=1}
+
+    function analyze(source){
+      if(source.trim()==='')throw new Error('Bitte einen TOML-Inhalt eingeben.');
+      if(source.length>150000)throw new Error('Die Eingabe darf höchstens 150.000 Zeichen enthalten.');
+      if(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(source))throw new Error('Die Eingabe enthält unzulässige Steuerzeichen.');
+      const bom=source.charCodeAt(0)===0xfeff;
+      const lines=source.replace(/^\ufeff/,'').replace(/\r\n?/g,'\n').split('\n');
+      if(lines.length>5000)throw new Error('Die Eingabe enthält mehr als 5.000 Zeilen.');
+      if(lines.some(line=>line.length>20000))throw new Error('Eine einzelne Zeile überschreitet 20.000 Zeichen.');
+      const warnings=[];const tables=new Set();const arrayTables=new Set();const arrayTableInstances=new Map();const keys=new Set();let current='';let assignments=0;let globalAssignments=0;let comments=0;let blanks=0;let malformed=0;let duplicateTables=0;let duplicateKeys=0;let dottedKeys=0;let quotedKeys=0;let sensitiveKeys=0;let maximumKeyLength=0;let maximumValueLength=0;let multilineValues=0;
+      const counts={strings:0,multilineStrings:0,booleans:0,integers:0,floats:0,dates:0,arrays:0,arrayItems:0,inlineTables:0,inlineEntries:0,invalid:0};
+      let pending='';let pendingTriple='';let pendingBalance={square:0,curly:0};
+      function process(statement){const trimmed=statement.trim();if(!trimmed)return;if(trimmed.startsWith('[[')||trimmed.startsWith('[')){let arrayTable=false;let body='';if(/^\[\[[\s\S]*\]\]$/.test(trimmed)){arrayTable=true;body=trimmed.slice(2,-2)}else if(/^\[[\s\S]*\]$/.test(trimmed)){body=trimmed.slice(1,-1)}else{malformed+=1;return}const key=parseKey(body);if(!key){malformed+=1;return}const path=body.trim();if(arrayTable){arrayTables.add(path);const instance=(arrayTableInstances.get(path)||0)+1;arrayTableInstances.set(path,instance);current=path+'#'+instance}else{if(tables.has(path))duplicateTables+=1;tables.add(path);current=path}dottedKeys+=key.dotted?1:0;quotedKeys+=key.quoted;return}const equal=findEqual(trimmed);if(equal<1){malformed+=1;return}const rawKey=trimmed.slice(0,equal).trim();const value=trimmed.slice(equal+1).trim();const key=parseKey(rawKey);if(!key){malformed+=1;return}assignments+=1;if(!current)globalAssignments+=1;dottedKeys+=key.dotted?1:0;quotedKeys+=key.quoted;maximumKeyLength=Math.max(maximumKeyLength,rawKey.length);maximumValueLength=Math.max(maximumValueLength,value.length);if(sensitivePattern.test(rawKey))sensitiveKeys+=1;const full=(current?current+'.':'')+rawKey;if(keys.has(full))duplicateKeys+=1;keys.add(full);classify(value,warnings,counts)}
+      for(const rawLine of lines){const without=stripComment(rawLine);const trimmed=without.trim();if(pending){pending+='\n'+without;if(pendingTriple){if((pending.match(new RegExp(pendingTriple==='"""'?'"""':"'''",'g'))||[]).length>=2){process(pending);pending='';pendingTriple='';multilineValues+=1}}else{pendingBalance=balance(pending.slice(findEqual(pending)+1));if(pendingBalance.square===0&&pendingBalance.curly===0){process(pending);pending='';multilineValues+=1}}continue}if(!trimmed){if(rawLine.trim().startsWith('#'))comments+=1;else blanks+=1;continue}if(rawLine.trim().startsWith('#')){comments+=1;continue}if(trimmed.startsWith('[')){process(trimmed);continue}const equal=findEqual(trimmed);if(equal<1){malformed+=1;continue}const value=trimmed.slice(equal+1).trim();if((value.startsWith('"""')&&(value.match(/"""/g)||[]).length<2)||(value.startsWith("'''")&&(value.match(/'''/g)||[]).length<2)){pending=trimmed;pendingTriple=value.slice(0,3);continue}const state=balance(value);if(state.square>0||state.curly>0){pending=trimmed;pendingBalance=state;continue}process(trimmed)}
+      if(pending){malformed+=1;warnings.push('Mindestens ein mehrzeiliger Wert wurde nicht geschlossen.');}
+      if(malformed)warnings.push(malformed+' nicht parsebare Anweisungen erkannt.');
+      if(duplicateTables)warnings.push(duplicateTables+' wiederholte Tabellendefinitionen erkannt.');
+      if(duplicateKeys)warnings.push(duplicateKeys+' doppelte vollständige Schlüsselpfade erkannt.');
+      return{bom,lines:lines.length,tables:tables.size,arrayTables:arrayTables.size,assignments,globalAssignments,comments,blanks,malformed,duplicateTables,duplicateKeys,dottedKeys,quotedKeys,sensitiveKeys,maximumKeyLength,maximumValueLength,multilineValues,counts,warnings:unique(warnings)}
+    }
+    function clearOutputs(text){statusOutput.textContent='Nicht verfügbar';structureOutput.replaceChildren(item('Auswertung','Nicht verfügbar'));keysOutput.replaceChildren(item('Auswertung','Nicht verfügbar'));valuesOutput.replaceChildren(item('Auswertung','Nicht verfügbar'));warningsOutput.replaceChildren(item('Auswertung','Nicht verfügbar'));message.className='note message warning';message.textContent=text}
+    function check(){try{const result=analyze(input.value);const tableCount=result.tables+result.arrayTables;statusOutput.textContent=tableCount+' Tabelle'+(tableCount===1?'':'n')+' · '+result.assignments+' Schlüssel · '+result.warnings.length+' Prüfhinweis'+(result.warnings.length===1?'':'e');structureOutput.replaceChildren(item('Zeilen',result.lines),item('Tabellen',result.tables),item('Tabellenlisten',result.arrayTables),item('globale Zuweisungen',result.globalAssignments),item('Kommentare',result.comments),item('Leerzeilen',result.blanks),item('mehrzeilige Werte',result.multilineValues),item('UTF-8-BOM',result.bom?'vorhanden':'nicht vorhanden'));keysOutput.replaceChildren(item('Schlüssel gesamt',result.assignments),item('gepunktete Schlüssel oder Tabellen',result.dottedKeys),item('quotierte Schlüsselteile',result.quotedKeys),item('doppelte Tabellen',result.duplicateTables),item('doppelte Schlüsselpfade',result.duplicateKeys),item('potenziell sensible Schlüssel',result.sensitiveKeys),item('längster Schlüssel',result.maximumKeyLength+' Zeichen'));valuesOutput.replaceChildren(item('Texte',result.counts.strings),item('mehrzeilige Texte',result.counts.multilineStrings),item('Wahrheitswerte',result.counts.booleans),item('Ganzzahlen',result.counts.integers),item('Fließkommazahlen',result.counts.floats),item('Datum- und Zeitwerte',result.counts.dates),item('Arrays',result.counts.arrays),item('Arrayelemente',result.counts.arrayItems),item('Inline-Tabellen',result.counts.inlineTables),item('Inline-Einträge',result.counts.inlineEntries),item('nicht klassifizierte Werte',result.counts.invalid),item('längster Wert',result.maximumValueLength+' Zeichen'));warningsOutput.replaceChildren(...(result.warnings.length?result.warnings.map(warning=>item('Prüfhinweis',warning)):[item('Prüfung','keine der geprüften Auffälligkeiten erkannt')]));message.className='note message';message.textContent='Die TOML-Struktur wurde ausschließlich lokal ausgewertet. Tabellenpfade, Schlüssel und Werte werden nicht ausgegeben.'}catch(error){clearOutputs(error.message)}}
+    document.querySelector('#check').addEventListener('click',check);
+    document.querySelector('#sample').addEventListener('click',()=>{input.value=sampleToml;check()});
+    check();
+  </script>
+</body>
+</html>
