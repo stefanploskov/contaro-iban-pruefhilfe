@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>IBAN Formatierer und Prüfhilfe | Contaro e.U.</title>
+  <meta name="description" content="Kostenlose Contaro Arbeitshilfe zum Formatieren einer IBAN und Prüfen der internationalen Prüfsumme direkt im Browser.">
+  <link rel="canonical" href="https://stefanploskov.github.io/contaro-iban-pruefhilfe/">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Kostenlose Arbeitshilfe von Contaro</p>
+    <h1>IBAN formatieren und formal prüfen</h1>
+    <p class="intro">Entfernt Leerzeichen, wandelt Buchstaben in Großbuchstaben um und prüft die internationale IBAN Prüfsumme. Die Eingabe bleibt ausschließlich in deinem Browser.</p>
+    <label for="iban">IBAN eingeben</label>
+    <div class="row">
+      <input id="iban" autocomplete="off" inputmode="text" placeholder="AT00 0000 0000 0000 0000">
+      <button id="check" type="button">Formatieren</button>
+    </div>
+    <section id="result" aria-live="polite" hidden>
+      <span id="badge"></span>
+      <code id="formatted"></code>
+      <button id="copy" type="button">Kopieren</button>
+    </section>
+    <p class="note">Eine gültige Prüfsumme bestätigt nur den formalen Aufbau. Sie bestätigt weder das Konto noch den Zahlungsempfänger.</p>
+    <footer>
+      <strong>Contaro e.U.</strong><br>
+      Ruffenbrunnerstraße 13, 2352 Gumpoldskirchen, Österreich<br>
+      Rechnungen einfacher vorbereiten mit dem <a href="https://www.contaro.net/rechnungstool" target="_blank" rel="noopener">Contaro Rechnungstool</a>.
+    </footer>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
